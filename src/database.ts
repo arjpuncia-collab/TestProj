@@ -5,6 +5,4 @@ export const db = mysql.createPool({
   user: 'root',
   password: 'Arvin102007',
   database: 'Flight_Reservation_System',
-  waitForConnections: true,
-  connectionLimit: 10,
 });

@@ -1,109 +1,40 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
-import { db } from '../database';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+} from '@nestjs/common';
+import { PassengersService } from './passengers.service';
 
 @Controller('passengers')
 export class PassengersController {
+  constructor(private readonly service: PassengersService) {}
 
   @Get()
-  async findAll() {
-    try {
-      const [rows] = await db.query(
-        'SELECT * FROM Passengers'
-      );
-
-      return rows;
-    } catch (error) {
-      console.log(error);
-
-      return {
-        error: error,
-      };
-    }
+  findAll() {
+    return this.service.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-
-    const [rows] = await db.query(
-      'SELECT * FROM Passengers WHERE passenger_id=?',
-      [id]
-    );
-
-    return rows;
+  findOne(@Param('id') id: string) {
+    return this.service.findOne(id);
   }
 
   @Post()
-  async create(@Body() body: any) {
-
-    const {
-      first_name,
-      last_name,
-      passport_number,
-      nationality,
-      phone_number,
-      email,
-    } = body;
-
-    await db.query(
-      `INSERT INTO Passengers
-      (first_name,last_name,passport_number,nationality,phone_number,email)
-      VALUES (?,?,?,?,?,?)`,
-      [
-        first_name,
-        last_name,
-        passport_number,
-        nationality,
-        phone_number,
-        email,
-      ]
-    );
-
-    return {
-      message: 'Passenger added successfully'
-    };
+  create(@Body() body: any) {
+    return this.service.create(body);
   }
 
   @Put(':id')
-  async update(
-    @Param('id') id: string,
-    @Body() body: any
-  ) {
-
-    await db.query(
-      `UPDATE Passengers
-      SET first_name=?,
-      last_name=?,
-      nationality=?,
-      phone_number=?,
-      email=?
-      WHERE passenger_id=?`,
-      [
-        body.first_name,
-        body.last_name,
-        body.nationality,
-        body.phone_number,
-        body.email,
-        id,
-      ]
-    );
-
-    return {
-      message: 'Passenger updated'
-    };
+  update(@Param('id') id: string, @Body() body: any) {
+    return this.service.update(id, body);
   }
 
   @Delete(':id')
-  async delete(
-    @Param('id') id: string
-  ) {
-
-    await db.query(
-      'DELETE FROM Passengers WHERE passenger_id=?',
-      [id]
-    );
-
-    return {
-      message: 'Passenger deleted'
-    };
+  remove(@Param('id') id: string) {
+    return this.service.remove(id);
   }
 }
