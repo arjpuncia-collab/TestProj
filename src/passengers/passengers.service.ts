@@ -11,18 +11,55 @@ interface Passenger {
 
 @Injectable()
 export class PassengersService {
-  private passengers: Passenger[] = [];
+  private passengers: (Passenger & { id: number })[] = [];
 
   getAllPassengers() {
     return this.passengers;
   }
 
   createPassenger(passengerData: Passenger) {
-    this.passengers.push(passengerData);
+    const newPassenger = {
+      id: this.passengers.length + 1,
+      ...passengerData,
+    };
+
+    this.passengers.push(newPassenger);
 
     return {
       message: 'Passenger created successfully',
-      data: passengerData,
+      data: newPassenger,
+    };
+  }
+
+  updatePassenger(id: number, passengerData: any) {
+    const index = this.passengers.findIndex(
+      passenger => passenger.id === id,
+    );
+
+    if (index === -1) {
+      return {
+        message: 'Passenger not found',
+      };
+    }
+
+    this.passengers[index] = {
+      ...this.passengers[index],
+      ...passengerData,
+    };
+
+    return {
+      message: 'Passenger updated successfully',
+      data: this.passengers[index],
+    };
+  }
+
+  deletePassenger(id: number) {
+    this.passengers = this.passengers.filter(
+      passenger => passenger.id !== id,
+    );
+
+    return {
+      message: `Passenger ${id} deleted successfully`,
     };
   }
 }
