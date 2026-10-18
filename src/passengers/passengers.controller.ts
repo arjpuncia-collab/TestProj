@@ -13,8 +13,10 @@ export class PassengersController {
 
       return rows;
     } catch (error) {
+      console.log(error);
+
       return {
-        error: error instanceof Error ? error.message : String(error)
+        error: error,
       };
     }
   }
