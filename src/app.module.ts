@@ -1,21 +1,21 @@
 import { Module } from '@nestjs/common';
-import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
-import { DatabaseModule } from './database/database.module';
-import { CategoryModule } from './category/category.module';
-import { PassengersModule } from './passengers/passengers.module';
-import { FlightsModule } from './flights/flights.module';
-import { BookingsModule } from './bookings/bookings.module';
+import { BookingsController } from './bookings/bookings.controller';
+import { PassengersController } from './passengers/passengers.controller';
+import { FlightsController } from './flights/flights.controller';
+import { AircraftsController } from './aircraft/aircraft.controller';
+import { PaymentsController } from './payment/payments.controller';
+import { CrewController } from './crew/crew.controller';
+import { FlightCrewAssignmentController } from './flight-crew-assignment/flight-crew-assignment.controller';
 
 @Module({
-  imports: [
-    DatabaseModule,
-    UsersModule,
-    AuthModule,
-    CategoryModule,
-    PassengersModule,
-    FlightsModule,
-    BookingsModule,
+  controllers: [
+    BookingsController,
+    PassengersController,
+    FlightsController,
+    AircraftsController,
+    PaymentsController,
+    CrewController,
+    FlightCrewAssignmentController,
   ],
 })
 export class AppModule {}
