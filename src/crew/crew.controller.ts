@@ -1,9 +1,19 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+} from '@nestjs/common';
 import { CrewService } from './crew.service';
 
 @Controller('crew')
 export class CrewController {
-  constructor(private readonly crewService: CrewService) {}
+  constructor(
+    private readonly crewService: CrewService,
+  ) {}
 
   @Get()
   findAll() {
@@ -13,5 +23,18 @@ export class CrewController {
   @Post()
   create(@Body() crewData: any) {
     return this.crewService.createCrew(crewData);
+  }
+
+  @Put(':id')
+  update(
+    @Param('id') id: string,
+    @Body() crewData: any,
+  ) {
+    return this.crewService.updateCrew(+id, crewData);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.crewService.deleteCrew(+id);
   }
 }
