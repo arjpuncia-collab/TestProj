@@ -6,11 +6,17 @@ export class PassengersController {
 
   @Get()
   async findAll() {
-    const [rows] = await db.query(
-      'SELECT * FROM Passengers'
-    );
+    try {
+      const [rows] = await db.query(
+        'SELECT * FROM Passengers'
+      );
 
-    return rows;
+      return rows;
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
   }
 
   @Get(':id')
