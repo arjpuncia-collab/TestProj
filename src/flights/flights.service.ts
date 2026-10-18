@@ -26,4 +26,24 @@ export class FlightsService {
       data: flightData,
     };
   }
+
+  updateFlight(id: number, flightData: Partial<Flight>) {
+    const index = this.flights.findIndex((flight) => flight.flight_id === id);
+
+    if (index === -1) {
+      return { message: 'Flight not found' };
+    }
+
+    this.flights[index] = {
+      ...this.flights[index],
+      ...flightData,
+    };
+
+    return this.flights[index];
+  }
+
+  deleteFlight(id: number) {
+    this.flights = this.flights.filter((flight) => flight.flight_id !== id);
+    return { message: 'Flight deleted successfully' };
+  }
 }

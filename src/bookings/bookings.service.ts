@@ -24,4 +24,25 @@ export class BookingsService {
       data: bookingData,
     };
   }
+
+  updateBooking(id: number, bookingData: Partial<Booking>) {
+    const index = this.bookings.findIndex(booking => booking.booking_id === id);
+
+    if (index === -1) {
+      return { message: 'Booking not found' };
+    }
+
+    this.bookings[index] = {
+      ...this.bookings[index],
+      ...bookingData,
+    };
+
+    return this.bookings[index];
+  }
+
+  deleteBooking(id: number) {
+    this.bookings = this.bookings.filter(booking => booking.booking_id !== id);
+
+    return { message: 'Booking deleted successfully' };
+  }
 }
