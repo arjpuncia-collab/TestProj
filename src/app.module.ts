@@ -8,6 +8,12 @@ import { CrewModule } from './crew/crew.module';
 import { FlightCrewAssignmentModule } from './flight-crew-assignment/flight-crew-assignment.module';
 
 @Module({
-  imports: [PassengersModule, BookingsModule, FlightsModule, AircraftModule, PaymentModule, CrewModule],
+  imports: [PassengersModule,
+    BookingsModule,
+    FlightsModule,
+    AircraftModule,
+    PaymentModule,
+    CrewModule,
+    FlightCrewAssignmentModule],
 })
 export class AppModule {}
