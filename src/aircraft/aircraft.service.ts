@@ -1,60 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import { db } from '../database';
+
+interface Aircraft {
+  aircraft_id: number;
+  aircraft_name: string;
+  aircraft_model: string;
+  capacity: number;
+  manufacturer: string;
+}
 
 @Injectable()
 export class AircraftService {
+  private aircrafts: Aircraft[] = [];
 
-  async findAll() {
-    const [rows] = await db.query('SELECT * FROM Aircrafts');
-    return rows;
+  getAllAircrafts() {
+    return this.aircrafts;
   }
 
-  async findOne(id: string) {
-    const [rows] = await db.query(
-      'SELECT * FROM Aircrafts WHERE aircraft_id=?',
-      [id]
-    );
-    return rows;
-  }
+  createAircraft(aircraftData: Aircraft) {
+    this.aircrafts.push(aircraftData);
 
-  async create(body: any) {
-    await db.query(
-      `INSERT INTO Aircrafts
-      (model,capacity,manufacturer,registration_number)
-      VALUES(?,?,?,?)`,
-      [
-        body.model,
-        body.capacity,
-        body.manufacturer,
-        body.registration_number
-      ]
-    );
-
-    return { message: 'Aircraft added successfully' };
-  }
-
-  async update(id: string, body: any) {
-    await db.query(
-      `UPDATE Aircrafts
-       SET model=?,capacity=?,manufacturer=?
-       WHERE aircraft_id=?`,
-      [
-        body.model,
-        body.capacity,
-        body.manufacturer,
-        id
-      ]
-    );
-
-    return { message: 'Aircraft updated successfully' };
-  }
-
-  async remove(id: string) {
-    await db.query(
-      'DELETE FROM Aircrafts WHERE aircraft_id=?',
-      [id]
-    );
-
-    return { message: 'Aircraft deleted successfully' };
+    return {
+      message: 'Aircraft created successfully',
+      data: aircraftData,
+    };
   }
 }

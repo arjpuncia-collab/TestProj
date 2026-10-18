@@ -1,46 +1,16 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Param,
-  Body,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
+import { FlightsService } from './flights.service';
 
 @Controller('flights')
 export class FlightsController {
+  constructor(private readonly flightsService: FlightsService) {}
 
   @Get()
   findAll() {
-    return 'Get all flights';
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return `Get flight ${id}`;
+    return this.flightsService.getAllFlights();
   }
 
   @Post()
-  create(@Body() body: any) {
-    return {
-      message: 'Flight created',
-      data: body,
-    };
-  }
-
-  @Put(':id')
-  update(@Param('id') id: string, @Body() body: any) {
-    return {
-      message: `Flight ${id} updated`,
-      data: body,
-    };
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return {
-      message: `Flight ${id} deleted`,
-    };
-  }
-}
+  create(@Body() flightData: any) {
+    return this.flightsService.createFlight(flightData as any);
+  }}

@@ -1,66 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { db } from '../database';
+
+interface Payment {
+  payment_id: number;
+  booking_id: number;
+  amount: number;
+  payment_method: string;
+  payment_date: string;
+  status: string;
+}
 
 @Injectable()
-export class PaymentsService {
+export class PaymentService {
+  private payments: Payment[] = [];
 
-  async findAll() {
-    const [rows] = await db.query('SELECT * FROM Payments');
-    return rows;
+  getAllPayments() {
+    return this.payments;
   }
 
-  async findOne(id: string) {
-    const [rows] = await db.query(
-      'SELECT * FROM Payments WHERE payment_id=?',
-      [id]
-    );
-    return rows;
-  }
-
-  async create(body: any) {
-    await db.query(
-      `INSERT INTO Payments
-      (booking_id,amount,payment_date,method,status)
-      VALUES(?,?,?,?,?)`,
-      [
-        body.booking_id,
-        body.amount,
-        body.payment_date,
-        body.method,
-        body.status
-      ]
-    );
+  createPayment(paymentData: Payment) {
+    this.payments.push(paymentData);
 
     return {
-      message: 'Payment created successfully'
-    };
-  }
-
-  async update(id: string, body: any) {
-    await db.query(
-      `UPDATE Payments
-       SET amount=?,status=?
-       WHERE payment_id=?`,
-      [
-        body.amount,
-        body.status,
-        id
-      ]
-    );
-
-    return {
-      message: 'Payment updated successfully'
-    };
-  }
-
-  async remove(id: string) {
-    await db.query(
-      'DELETE FROM Payments WHERE payment_id=?',
-      [id]
-    );
-
-    return {
-      message: 'Payment deleted successfully'
+      message: 'Payment created successfully',
+      data: paymentData,
     };
   }
 }

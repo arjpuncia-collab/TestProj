@@ -1,14 +1,19 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
+import { FlightCrewAssignmentService } from './flight-crew-assignment.service';
 
-@Controller('flight_crew_assignment')
+@Controller('flight-crew-assignment')
 export class FlightCrewAssignmentController {
+  constructor(
+    private readonly assignmentService: FlightCrewAssignmentService,
+  ) {}
+
   @Get()
-findAll() {
-  return [
-    {
-      assignment_id: 1,
-      flight_id: 1,
-      crew_id: 1
-    }
-  ];
-}}
+  findAll() {
+    return this.assignmentService.getAllAssignments();
+  }
+
+  @Post()
+  create(@Body() assignmentData: any) {
+    return this.assignmentService.createAssignment(assignmentData);
+  }
+}
