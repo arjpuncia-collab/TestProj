@@ -1,83 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { db } from '../database';
+
+interface Passenger {
+  first_name: string;
+  last_name: string;
+  passport_number: string;
+  nationality: string;
+  phone_number: string;
+  email: string;
+}
 
 @Injectable()
 export class PassengersService {
+  private passengers: Passenger[] = [];
 
-  async findAll() {
-    const [rows] = await db.query(
-      'SELECT * FROM Passengers'
-    );
-
-    return rows;
+  getAllPassengers() {
+    return this.passengers;
   }
 
-  async findOne(id: string) {
-    const [rows] = await db.query(
-      'SELECT * FROM Passengers WHERE passenger_id=?',
-      [id]
-    );
-
-    return rows;
-  }
-
-  async create(body: any) {
-    await db.query(
-      `INSERT INTO Passengers
-      (first_name,last_name,passport_number,nationality,phone_number,email)
-      VALUES(?,?,?,?,?,?)`,
-      [
-        body.first_name,
-        body.last_name,
-        body.passport_number,
-        body.nationality,
-        body.phone_number,
-        body.email
-      ]
-    );
+  createPassenger(passengerData: Passenger) {
+    this.passengers.push(passengerData);
 
     return {
-      success: true,
-      message: 'Passenger created successfully'
-    };
-  }
-
-  async update(id: string, body: any) {
-    await db.query(
-      `UPDATE Passengers
-      SET first_name=?,
-          last_name=?,
-          passport_number=?,
-          nationality=?,
-          phone_number=?,
-          email=?
-      WHERE passenger_id=?`,
-      [
-        body.first_name,
-        body.last_name,
-        body.passport_number,
-        body.nationality,
-        body.phone_number,
-        body.email,
-        id
-      ]
-    );
-
-    return {
-      success: true,
-      message: 'Passenger updated successfully'
-    };
-  }
-
-  async remove(id: string) {
-    await db.query(
-      'DELETE FROM Passengers WHERE passenger_id=?',
-      [id]
-    );
-
-    return {
-      success: true,
-      message: 'Passenger deleted successfully'
+      message: 'Passenger created successfully',
+      data: passengerData,
     };
   }
 }
