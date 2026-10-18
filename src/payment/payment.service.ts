@@ -20,8 +20,7 @@ export class PaymentsService {
   async create(body: any) {
     await db.query(
       `INSERT INTO Payments
-      (booking_id,amount,payment_date,
-      method,status)
+      (booking_id,amount,payment_date,method,status)
       VALUES(?,?,?,?,?)`,
       [
         body.booking_id,
@@ -32,7 +31,9 @@ export class PaymentsService {
       ]
     );
 
-    return { message: 'Payment created successfully' };
+    return {
+      message: 'Payment created successfully'
+    };
   }
 
   async update(id: string, body: any) {
@@ -47,7 +48,9 @@ export class PaymentsService {
       ]
     );
 
-    return { message: 'Payment updated successfully' };
+    return {
+      message: 'Payment updated successfully'
+    };
   }
 
   async remove(id: string) {
@@ -56,6 +59,8 @@ export class PaymentsService {
       [id]
     );
 
-    return { message: 'Payment deleted successfully' };
+    return {
+      message: 'Payment deleted successfully'
+    };
   }
 }
