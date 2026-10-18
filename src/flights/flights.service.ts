@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 interface Flight {
-  flight_id: number;
+  id: number;
   flight_number: string;
   origin: string;
   destination: string;
@@ -18,17 +18,22 @@ export class FlightsService {
     return this.flights;
   }
 
-  createFlight(flightData: Flight) {
-    this.flights.push(flightData);
+  createFlight(flightData: any) {
+    const newFlight = {
+      id: this.flights.length + 1,
+      ...flightData,
+    };
+
+    this.flights.push(newFlight);
 
     return {
       message: 'Flight created successfully',
-      data: flightData,
+      data: newFlight,
     };
   }
 
   updateFlight(id: number, flightData: Partial<Flight>) {
-    const index = this.flights.findIndex((flight) => flight.flight_id === id);
+    const index = this.flights.findIndex((flight) => flight.id === id);
 
     if (index === -1) {
       return { message: 'Flight not found' };
@@ -43,7 +48,7 @@ export class FlightsService {
   }
 
   deleteFlight(id: number) {
-    this.flights = this.flights.filter((flight) => flight.flight_id !== id);
+    this.flights = this.flights.filter((flight) => flight.id !== id);
     return { message: 'Flight deleted successfully' };
   }
 }

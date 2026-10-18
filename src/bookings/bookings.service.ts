@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 interface Booking {
-  booking_id: number;
+  id: number;
   passenger_id: number;
   flight_id: number;
   booking_date: string;
@@ -16,17 +16,30 @@ export class BookingsService {
     return this.bookings;
   }
 
-  createBooking(bookingData: Booking) {
-    this.bookings.push(bookingData);
+  createBooking(bookingData: any) {
+    const newBooking = {
+      id: this.bookings.length + 1,
+      ...bookingData,
+    };
+
+    this.bookings.push(newBooking);
 
     return {
       message: 'Booking created successfully',
-      data: bookingData,
+      data: newBooking,
     };
   }
 
-  updateBooking(id: number, bookingData: Partial<Booking>) {
-    const index = this.bookings.findIndex(booking => booking.booking_id === id);
+  getBookingById(id: number) {
+    return this.bookings.find(
+      booking => booking.id === id,
+    );
+  }
+
+  updateBooking(id: number, bookingData: any) {
+    const index = this.bookings.findIndex(
+      booking => booking.id === id,
+    );
 
     if (index === -1) {
       return { message: 'Booking not found' };
@@ -37,12 +50,19 @@ export class BookingsService {
       ...bookingData,
     };
 
-    return this.bookings[index];
+    return {
+      message: 'Booking updated successfully',
+      data: this.bookings[index],
+    };
   }
 
   deleteBooking(id: number) {
-    this.bookings = this.bookings.filter(booking => booking.booking_id !== id);
+    this.bookings = this.bookings.filter(
+      booking => booking.id !== id,
+    );
 
-    return { message: 'Booking deleted successfully' };
+    return {
+      message: 'Booking deleted successfully',
+    };
   }
 }
