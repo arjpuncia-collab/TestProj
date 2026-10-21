@@ -3,8 +3,10 @@ import { Injectable } from '@nestjs/common';
 interface User {
   id: number;
   username: string;
+  email: string;
   password: string;
   role: string;
+  refreshToken?: string | null;
 }
 
 @Injectable()
@@ -16,13 +18,34 @@ export class UsersService {
   }
 
   findById(id: number) {
-    const user = this.users.find(user => user.id === id);
+    return this.users.find(user => user.id === id);
+  }
+
+  findByUsername(username: string) {
+    return this.users.find(
+      user => user.username === username,
+    );
+  }
+
+  findByRefreshToken(refreshToken: string) {
+    return this.users.find(
+      user => user.refreshToken === refreshToken,
+    );
+  }
+
+  setRefreshToken(
+    userId: number,
+    refreshToken: string | null,
+  ) {
+    const user = this.users.find(
+      user => user.id === userId,
+    );
 
     if (!user) {
-      return {
-        message: 'User not found',
-      };
+      return null;
     }
+
+    user.refreshToken = refreshToken;
 
     return user;
   }
@@ -47,9 +70,7 @@ export class UsersService {
     );
 
     if (index === -1) {
-      return {
-        message: 'User not found',
-      };
+      return { message: 'User not found' };
     }
 
     this.users[index] = {
@@ -64,7 +85,9 @@ export class UsersService {
   }
 
   deleteUser(id: number) {
-    this.users = this.users.filter(user => user.id !== id);
+    this.users = this.users.filter(
+      user => user.id !== id,
+    );
 
     return {
       message: 'User deleted successfully',
