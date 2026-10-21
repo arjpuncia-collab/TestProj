@@ -12,7 +12,7 @@ async function bootstrap() {
 
   app.enableCors();
 
-  app.getHttpAdapter().get('/', (req, res) =>
+  app.getHttpAdapter().get('/', (_req, res) =>
     res.send({ message: 'Server Running Successfully!' }),
   );
 
