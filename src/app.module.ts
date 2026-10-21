@@ -6,7 +6,7 @@ import { AircraftModule } from './aircraft/aircraft.module';
 import { PaymentModule } from './payment/payment.module';
 import { CrewModule } from './crew/crew.module';
 import { FlightCrewAssignmentModule } from './flight-crew-assignment/flight-crew-assignment.module';
-
+import { UsersModule } from './users/users.module';
 @Module({
   imports: [PassengersModule,
     BookingsModule,
@@ -14,6 +14,7 @@ import { FlightCrewAssignmentModule } from './flight-crew-assignment/flight-crew
     AircraftModule,
     PaymentModule,
     CrewModule,
-    FlightCrewAssignmentModule],
+    FlightCrewAssignmentModule,
+    UsersModule],
 })
 export class AppModule {}
