@@ -1,6 +1,8 @@
+
 import {
   Injectable,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 
 import { UsersService } from '../users/users.service';
@@ -15,32 +17,37 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  // REGISTER
   async register(userData: {
     username: string;
     password: string;
   }) {
-    if (!userData.username || !userData.password) {
-      throw new UnauthorizedException(
+    if (!userData.username?.trim() || !userData.password) {
+      throw new BadRequestException(
         'Username and password are required',
       );
     }
 
-    return await this.usersService.createUser({
-      username: userData.username,
+    return this.usersService.createUser({
+      username: userData.username.trim(),
       password: userData.password,
     });
   }
 
+  // VALIDATE LOGIN
   async validateUser(
     username: string,
     pass: string,
   ) {
-    const user =
-      await this.usersService.findByUsername(
-        username,
-      );
+    const user = await this.usersService.findByUsername(
+      username,
+    );
 
     if (!user) {
+      return null;
+    }
+
+    if (!user.password) {
       return null;
     }
 
@@ -60,6 +67,7 @@ export class AuthService {
     };
   }
 
+  // LOGIN
   async login(user: {
     id: number;
     username: string;
@@ -71,19 +79,28 @@ export class AuthService {
       role: user.role,
     };
 
-    const accessToken =
-      this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload);
 
     const refreshSecret =
-      process.env.JWT_REFRESH_TOKEN_SECRET ||
-      'refresh_secret';
+      process.env.JWT_REFRESH_TOKEN_SECRET;
+
+    if (!refreshSecret) {
+      throw new Error(
+        'JWT_REFRESH_TOKEN_SECRET is not configured',
+      );
+    }
+
     const refreshExpiresIn =
       (process.env.REFRESH_TOKEN_EXPIRES_IN as
         jwt.SignOptions['expiresIn']) || '7d';
 
-    const refreshToken = jwt.sign(payload, refreshSecret, {
-      expiresIn: refreshExpiresIn,
-    });
+    const refreshToken = jwt.sign(
+      payload,
+      refreshSecret,
+      {
+        expiresIn: refreshExpiresIn,
+      },
+    );
 
     await this.usersService.setRefreshToken(
       user.id,
@@ -93,9 +110,15 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+      },
     };
   }
 
+  // LOGOUT
   async logout(userId: number) {
     await this.usersService.setRefreshToken(
       userId,
@@ -104,25 +127,36 @@ export class AuthService {
 
     return {
       ok: true,
+      message: 'Logged out successfully',
     };
   }
 
-  async refreshTokens(
-    refreshToken: string,
-  ) {
+  // REFRESH TOKENS
+  async refreshTokens(refreshToken: string) {
     try {
-      const decoded: any =
-        jwt.verify(
-          refreshToken,
-          process.env
-            .JWT_REFRESH_TOKEN_SECRET ||
-            'refresh_secret',
+      if (!refreshToken) {
+        throw new UnauthorizedException(
+          'Refresh token is required',
         );
+      }
 
-      const user =
-        await this.usersService.findById(
-          decoded.sub,
+      const refreshSecret =
+        process.env.JWT_REFRESH_TOKEN_SECRET;
+
+      if (!refreshSecret) {
+        throw new Error(
+          'JWT_REFRESH_TOKEN_SECRET is not configured',
         );
+      }
+
+      const decoded: any = jwt.verify(
+        refreshToken,
+        refreshSecret,
+      );
+
+      const user = await this.usersService.findById(
+        Number(decoded.sub),
+      );
 
       if (!user) {
         throw new UnauthorizedException(
@@ -137,7 +171,7 @@ export class AuthService {
 
       if (!found) {
         throw new UnauthorizedException(
-          'Invalid token',
+          'Invalid refresh token',
         );
       }
 
@@ -147,28 +181,28 @@ export class AuthService {
         role: found.role,
       };
 
-      const accessToken =
-        this.jwtService.sign(payload);
+      const accessToken = this.jwtService.sign(payload);
 
-      const refreshSecret =
-        process.env.JWT_REFRESH_TOKEN_SECRET ||
-        'refresh_secret';
       const refreshExpiresIn =
         (process.env.REFRESH_TOKEN_EXPIRES_IN as
           jwt.SignOptions['expiresIn']) || '7d';
 
-      const newRefresh = jwt.sign(payload, refreshSecret, {
-        expiresIn: refreshExpiresIn,
-      });
+      const newRefreshToken = jwt.sign(
+        payload,
+        refreshSecret,
+        {
+          expiresIn: refreshExpiresIn,
+        },
+      );
 
       await this.usersService.setRefreshToken(
         found.id,
-        newRefresh,
+        newRefreshToken,
       );
 
       return {
         accessToken,
-        refreshToken: newRefresh,
+        refreshToken: newRefreshToken,
       };
     } catch {
       throw new UnauthorizedException(
