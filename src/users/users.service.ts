@@ -1,96 +1,141 @@
 import { Injectable } from '@nestjs/common';
-
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  password: string;
-  role: string;
-  refreshToken?: string | null;
-}
+import { DatabaseService } from '../database/database.service';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [];
+  constructor(
+    private databaseService: DatabaseService,
+  ) {}
 
-  getAll() {
-    return this.users;
-  }
+  async getAll() {
+    const pool = this.databaseService.getPool();
 
-  findById(id: number) {
-    return this.users.find(user => user.id === id);
-  }
-
-  findByUsername(username: string) {
-    return this.users.find(
-      user => user.username === username,
+    const [rows] = await pool.query(
+      'SELECT * FROM users',
     );
+
+    return rows;
   }
 
-  findByRefreshToken(refreshToken: string) {
-    return this.users.find(
-      user => user.refreshToken === refreshToken,
+  async findById(id: number) {
+    const pool = this.databaseService.getPool();
+
+    const [rows]: any = await pool.query(
+      'SELECT * FROM users WHERE id = ?',
+      [id],
     );
+
+    return rows[0];
   }
 
-  setRefreshToken(
+  async findByUsername(username: string) {
+    const pool = this.databaseService.getPool();
+
+    const [rows]: any = await pool.query(
+      'SELECT * FROM users WHERE username = ?',
+      [username],
+    );
+
+    return rows[0];
+  }
+
+  async findByRefreshToken(
+    refreshToken: string,
+  ) {
+    const pool = this.databaseService.getPool();
+
+    const [rows]: any = await pool.query(
+      'SELECT * FROM users WHERE refreshToken = ?',
+      [refreshToken],
+    );
+
+    return rows[0];
+  }
+
+  async setRefreshToken(
     userId: number,
     refreshToken: string | null,
   ) {
-    const user = this.users.find(
-      user => user.id === userId,
-    );
-
-    if (!user) {
-      return null;
-    }
-
-    user.refreshToken = refreshToken;
-
-    return user;
+    return true;
   }
 
-  createUser(userData: any) {
-    const newUser = {
-      id: this.users.length + 1,
-      ...userData,
-    };
+  async createUser(userData: any) {
+    const pool = this.databaseService.getPool();
 
-    this.users.push(newUser);
+    const hashedPassword =
+      await bcrypt.hash(
+        userData.password,
+        10,
+      );
+
+    const [result]: any =
+      await pool.query(
+        `
+        INSERT INTO users
+        (
+          username,
+          password,
+          role
+        )
+        VALUES (?, ?, ?)
+        `,
+        [
+          userData.username,
+          hashedPassword,
+          userData.role ||
+            'Passenger',
+        ],
+      );
 
     return {
-      message: 'User created successfully',
-      data: newUser,
-    };
-  }
-
-  updateUser(id: number, userData: any) {
-    const index = this.users.findIndex(
-      user => user.id === id,
-    );
-
-    if (index === -1) {
-      return { message: 'User not found' };
-    }
-
-    this.users[index] = {
-      ...this.users[index],
-      ...userData,
-    };
-
-    return {
-      message: 'User updated successfully',
-      data: this.users[index],
+      message:
+        'User created successfully',
+      userId: result.insertId,
     };
   }
 
-  deleteUser(id: number) {
-    this.users = this.users.filter(
-      user => user.id !== id,
+  async updateUser(
+    id: number,
+    userData: any,
+  ) {
+    const pool = this.databaseService.getPool();
+
+    await pool.query(
+      `
+      UPDATE users
+      SET
+      username = ?,
+      role = ?
+      WHERE id = ?
+      `,
+      [
+        userData.username,
+        userData.role,
+        id,
+      ],
     );
 
     return {
-      message: 'User deleted successfully',
+      message:
+        'User updated successfully',
+    };
+  }
+
+  async deleteUser(id: number) {
+    const pool = this.databaseService.getPool();
+
+    await pool.query(
+      `
+      DELETE FROM users
+      WHERE id = ?
+      `,
+      [id],
+    );
+
+    return {
+      message:
+        'User deleted successfully',
     };
   }
 }

@@ -10,7 +10,13 @@ async function bootstrap() {
 
   const port = Number(process.env.PORT);
 
-  app.enableCors();
+  app.enableCors({
+    origin: [
+      'http://localhost:3001',
+      'https://login-frontend-gamma-two.vercel.app',
+    ],
+    credentials: true,
+  });
 
   app.getHttpAdapter().get('/', (req, res) =>
     res.send({ message: 'Server Running Successfully!' }),
