@@ -1,30 +1,24 @@
-import 'reflect-metadata';
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as dotenv from 'dotenv';
 
 async function bootstrap() {
-  dotenv.config();
-
   const app = await NestFactory.create(AppModule);
-
-  const port = Number(process.env.PORT);
 
   app.enableCors({
     origin: [
       'http://localhost:3001',
       'https://login-frontend-gamma-two.vercel.app',
+      'https://login-frontend-fj83pq0v6-avp12.vercel.app',
     ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
 
-  app.getHttpAdapter().get('/', (req, res) =>
-    res.send({ message: 'Server Running Successfully!' }),
-  );
+  const port = process.env.PORT || 3000;
 
   await app.listen(port, '0.0.0.0');
-
-  console.log(`Server listening on http://localhost:${port}`);
 }
 
 bootstrap();
