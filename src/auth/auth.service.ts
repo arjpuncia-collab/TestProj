@@ -15,6 +15,22 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  async register(userData: {
+    username: string;
+    password: string;
+  }) {
+    if (!userData.username || !userData.password) {
+      throw new UnauthorizedException(
+        'Username and password are required',
+      );
+    }
+
+    return await this.usersService.createUser({
+      username: userData.username,
+      password: userData.password,
+    });
+  }
+
   async validateUser(
     username: string,
     pass: string,

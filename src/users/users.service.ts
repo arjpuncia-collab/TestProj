@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+
+import {
+  Injectable,
+  ConflictException,
+} from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import * as bcrypt from 'bcryptjs';
 
@@ -12,7 +16,7 @@ export class UsersService {
     const pool = this.databaseService.getPool();
 
     const [rows] = await pool.query(
-      'SELECT * FROM users',
+      'SELECT id, username, role FROM users',
     );
 
     return rows;
@@ -40,9 +44,7 @@ export class UsersService {
     return rows[0];
   }
 
-  async findByRefreshToken(
-    refreshToken: string,
-  ) {
+  async findByRefreshToken(refreshToken: string) {
     const pool = this.databaseService.getPool();
 
     const [rows]: any = await pool.query(
@@ -57,58 +59,59 @@ export class UsersService {
     userId: number,
     refreshToken: string | null,
   ) {
+    const pool = this.databaseService.getPool();
+
+    await pool.query(
+      'UPDATE users SET refreshToken = ? WHERE id = ?',
+      [refreshToken, userId],
+    );
+
     return true;
   }
 
   async createUser(userData: any) {
     const pool = this.databaseService.getPool();
 
-    const hashedPassword =
-      await bcrypt.hash(
-        userData.password,
-        10,
-      );
+    const existingUser = await this.findByUsername(
+      userData.username,
+    );
 
-    const [result]: any =
-      await pool.query(
-        `
-        INSERT INTO users
-        (
-          username,
-          password,
-          role
-        )
-        VALUES (?, ?, ?)
-        `,
-        [
-          userData.username,
-          hashedPassword,
-          userData.role ||
-            'Passenger',
-        ],
+    if (existingUser) {
+      throw new ConflictException(
+        'Username already exists',
       );
+    }
+
+    const hashedPassword = await bcrypt.hash(
+      userData.password,
+      10,
+    );
+
+    const [result]: any = await pool.query(
+      `INSERT INTO users (username, password, role)
+       VALUES (?, ?, ?)`,
+      [
+        userData.username,
+        hashedPassword,
+        'Customer',
+      ],
+    );
 
     return {
-      message:
-        'User created successfully',
+      message: 'User registered successfully',
       userId: result.insertId,
+      username: userData.username,
+      role: 'Customer',
     };
   }
 
-  async updateUser(
-    id: number,
-    userData: any,
-  ) {
+  async updateUser(id: number, userData: any) {
     const pool = this.databaseService.getPool();
 
     await pool.query(
-      `
-      UPDATE users
-      SET
-      username = ?,
-      role = ?
-      WHERE id = ?
-      `,
+      `UPDATE users
+       SET username = ?, role = ?
+       WHERE id = ?`,
       [
         userData.username,
         userData.role,
@@ -117,8 +120,7 @@ export class UsersService {
     );
 
     return {
-      message:
-        'User updated successfully',
+      message: 'User updated successfully',
     };
   }
 
@@ -126,16 +128,12 @@ export class UsersService {
     const pool = this.databaseService.getPool();
 
     await pool.query(
-      `
-      DELETE FROM users
-      WHERE id = ?
-      `,
+      'DELETE FROM users WHERE id = ?',
       [id],
     );
 
     return {
-      message:
-        'User deleted successfully',
+      message: 'User deleted successfully',
     };
   }
 }

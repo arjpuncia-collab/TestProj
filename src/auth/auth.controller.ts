@@ -1,26 +1,30 @@
+
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UsersService } from '../users/users.service';
 
 @Controller('auth')
 export class AuthController {
-
   constructor(
     private authService: AuthService,
-    private usersService: UsersService,
   ) {}
 
   @Post('register')
-  async register(@Body() body: { username: string; password: string }) {
-    return this.usersService.createUser({
-      username: body.username,
-      password: body.password,
-      role: 'Customer',
-    });
+  async register(
+    @Body() body: {
+      username: string;
+      password: string;
+    },
+  ) {
+    return this.authService.register(body);
   }
 
   @Post('login')
-  async login(@Body() body: { username: string; password: string }) {
+  async login(
+    @Body() body: {
+      username: string;
+      password: string;
+    },
+  ) {
     const user = await this.authService.validateUser(
       body.username,
       body.password,
@@ -34,12 +38,18 @@ export class AuthController {
   }
 
   @Post('logout')
-  async logout(@Body() body: { userId: number }) {
+  async logout(
+    @Body() body: { userId: number },
+  ) {
     return this.authService.logout(body.userId);
   }
 
   @Post('refresh')
-  async refresh(@Body() body: { refreshToken: string }) {
-    return this.authService.refreshTokens(body.refreshToken);
+  async refresh(
+    @Body() body: { refreshToken: string },
+  ) {
+    return this.authService.refreshTokens(
+      body.refreshToken,
+    );
   }
 }
