@@ -1,5 +1,9 @@
+import {
+  Body,
+  Controller,
+  Post,
+} from '@nestjs/common';
 
-import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -9,47 +13,47 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  async register(
-    @Body() body: {
-      username: string;
-      password: string;
-    },
-  ) {
+  register(@Body() body: any) {
     return this.authService.register(body);
   }
 
   @Post('login')
-  async login(
-    @Body() body: {
-      username: string;
-      password: string;
-    },
-  ) {
-    const user = await this.authService.validateUser(
+async login(
+  @Body() body: any,
+) {
+  const user =
+    await this.authService.validateUser(
       body.username,
       body.password,
     );
 
-    if (!user) {
-      return { error: 'Invalid credentials' };
-    }
-
-    return this.authService.login(user);
+  if (!user) {
+    return {
+      error:
+        'Invalid username or password',
+    };
   }
 
+  return this.authService.login(
+    user,
+  );
+}
+
   @Post('logout')
-  async logout(
-    @Body() body: { userId: number },
+  logout(
+    @Body() body: any,
   ) {
-    return this.authService.logout(body.userId);
+    return this.authService.logout(
+      Number(body.userId),
+    );
   }
 
   @Post('refresh')
-  async refresh(
-    @Body() body: { refreshToken: string },
+  refresh(
+    @Body() body: any,
   ) {
     return this.authService.refreshTokens(
-      body.refreshToken,
+      body.refresh_token,
     );
   }
 }

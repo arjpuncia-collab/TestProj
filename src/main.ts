@@ -1,3 +1,5 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -5,33 +7,19 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const allowedOrigins = [
-    'http://localhost:3001',
-    'https://login-frontend-gamma-two.vercel.app',
-    'https://login-frontend-fj83pq0v6-avp12.vercel.app',
-    process.env.FRONTEND_URL,
-  ].filter((origin): origin is string => Boolean(origin));
-
   app.enableCors({
-    origin: allowedOrigins,
-    methods: [
-      'GET',
-      'POST',
-      'PUT',
-      'PATCH',
-      'DELETE',
-      'OPTIONS',
-    ],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-    ],
+    origin: true,
     credentials: true,
   });
 
-  const port = process.env.PORT || 3000;
+  const port = Number(process.env.PORT) || 3000;
 
   await app.listen(port, '0.0.0.0');
+
+  console.log(`🚀 Server running on port ${port}`);
+  console.log('DB_HOST:', process.env.DB_HOST);
+  console.log('DB_USER:', process.env.DB_USER);
+  console.log('DB_NAME:', process.env.DB_NAME);
 }
 
 bootstrap();
