@@ -1,69 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import * as bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private databaseService: DatabaseService,
+    private readonly databaseService: DatabaseService,
   ) {}
 
-  async getAll() {
-    const pool = this.databaseService.getPool();
-
-    const [rows] = await pool.query(
-      'SELECT * FROM users',
-    );
-
-    return rows;
-  }
-
-  async findById(id: number) {
-    const pool = this.databaseService.getPool();
-
-    const [rows]: any = await pool.query(
-      'SELECT * FROM users WHERE id = ?',
-      [id],
-    );
-
-    return rows[0];
+  private getPool() {
+    return (this.databaseService as any).pool;
   }
 
   async findByUsername(username: string) {
-    const pool = this.databaseService.getPool();
-
-    const [rows]: any = await pool.query(
-      'SELECT * FROM users WHERE username = ?',
-      [username],
-    );
-
-    return rows[0];
-  }
-
-  async findByRefreshToken(
-    refreshToken: string,
-  ) {
-    const pool = this.databaseService.getPool();
-
-    const [rows]: any = await pool.query(
+    const [rows]: any = await this.getPool().query(
       `
       SELECT *
       FROM users
-      WHERE refresh_token = ?
+      WHERE username = ?
+      LIMIT 1
       `,
-      [refreshToken],
+      [username],
     );
 
-    return rows[0];
+    return rows.length ? rows[0] : null;
   }
 
   async setRefreshToken(
     userId: number,
     refreshToken: string | null,
   ) {
-    const pool = this.databaseService.getPool();
-
-    await pool.query(
+    await this.getPool().query(
       `
       UPDATE users
       SET refresh_token = ?
@@ -71,85 +38,101 @@ export class UsersService {
       `,
       [refreshToken, userId],
     );
-
-    return true;
   }
 
-  async createUser(userData: any) {
-    const pool = this.databaseService.getPool();
+  async findByRefreshToken(refreshToken: string) {
+    const [rows]: any = await this.getPool().query(
+      `
+      SELECT *
+      FROM users
+      WHERE refresh_token = ?
+      LIMIT 1
+      `,
+      [refreshToken],
+    );
 
-    const hashedPassword =
-      await bcrypt.hash(
-        userData.password,
-        10,
-      );
+    return rows.length ? rows[0] : null;
+  }
 
-    const [result]: any =
-      await pool.query(
-        `
-        INSERT INTO users
-        (
-          username,
-          password,
-          role
-        )
-        VALUES (?, ?, ?)
-        `,
-        [
-          userData.username,
-          hashedPassword,
-          userData.role || 'user',
-        ],
-      );
+  async getUsers() {
+    const [rows]: any = await this.getPool().query(
+      `
+      SELECT
+      id,
+      username,
+      role,
+      created_at
+      FROM users
+      ORDER BY id DESC
+      `,
+    );
+
+    return rows;
+  }
+
+  async createUser(body: any) {
+    const hashedPassword = await bcrypt.hash(
+      body.password,
+      10,
+    );
+
+    await this.getPool().query(
+      `
+      INSERT INTO users
+      (
+        username,
+        password,
+        role
+      )
+      VALUES (?, ?, ?)
+      `,
+      [
+        body.username,
+        hashedPassword,
+        body.role || 'Customer',
+      ],
+    );
 
     return {
-      message:
-        'User created successfully',
-      userId: result.insertId,
+      success: true,
+      message: 'User created',
     };
   }
 
-  async updateUser(
-    id: number,
-    userData: any,
-  ) {
-    const pool = this.databaseService.getPool();
-
-    await pool.query(
+  async updateUser(id: number, body: any) {
+    await this.getPool().query(
       `
       UPDATE users
       SET
-      username = ?,
-      role = ?
-      WHERE id = ?
+        username=?,
+        role=?
+      WHERE id=?
       `,
       [
-        userData.username,
-        userData.role,
+        body.username,
+        body.role,
         id,
       ],
     );
 
     return {
-      message:
-        'User updated successfully',
+      success: true,
+      message: 'User updated',
     };
   }
 
   async deleteUser(id: number) {
-    const pool = this.databaseService.getPool();
-
-    await pool.query(
+    await this.getPool().query(
       `
       DELETE FROM users
-      WHERE id = ?
+      WHERE id=?
       `,
       [id],
     );
 
     return {
-      message:
-        'User deleted successfully',
+      success: true,
+      message: 'User deleted',
     };
   }
 }
